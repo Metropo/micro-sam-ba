@@ -95,6 +95,11 @@ static const struct _chip _chips_sam4s[] = {
 	{ "SAM4S2A (Rev B)"   , 0x288B07E1, 0x00000000, 0x400e0a00, 0x00400000,  128,	2, 0xa5000005 },
 };
 
+static const struct _pio_regs _pio_regs_sam4s[] = {
+	{ (1 << 11), 0x400E0E60, 0x400E0E64, 0x400E0E68, 0x400E0E90, 0x400E0E94, 0x400E0E98, 0x400E0E3C },
+	{ (1 << 12), 0x400E1060, 0x400E1064, 0x400E1068, 0x400E1090, 0x400E1094, 0x400E1098, 0x400E103C },
+	{ (1 << 13), 0x400E1260, 0x400E1264, 0x400E1268, 0x400E1290, 0x400E1294, 0x400E1298, 0x400E123C },
+};
 
 static const struct _chip_serie _chip_series[] = {
 	{
@@ -114,12 +119,17 @@ static const struct _chip_serie _chip_series[] = {
 		.chips      = _chips_sam4,
 	},
 	{
-		.name       = "sam4s",
-		.cidr_reg   = 0x400e0740,
-		.exid_reg   = 0x400e0744,
-		.rstccr_reg = 0x400e1400,
-		.nb_chips   = ARRAY_SIZE(_chips_sam4s),
-		.chips      = _chips_sam4s,
+		.name         = "sam4s",
+		.cidr_reg     = 0x400e0740,
+		.exid_reg     = 0x400e0744,
+		.rstccr_reg   = 0x400e1400,
+		.pmcpcer0_reg = 0x400E0410,
+		.pmcpcdr0_reg = 0x400E0414,
+		.pmcpcsr0_reg = 0x400E0418,
+		.nb_chips     = ARRAY_SIZE(_chips_sam4s),
+		.chips	      = _chips_sam4s,
+	    .nb_pio_regs  = ARRAY_SIZE(_pio_regs_sam4s),
+		.pio_regs     = _pio_regs_sam4s,
 	},
 };
 
@@ -185,6 +195,9 @@ uint32_t supported_chips_checksum(void) {
         series_checksum += serie->cidr_reg;
         series_checksum += serie->exid_reg;
         series_checksum += serie->rstccr_reg;
+        series_checksum += serie->pmcpcer0_reg;
+        series_checksum += serie->pmcpcdr0_reg;
+        series_checksum += serie->pmcpcsr0_reg;
         series_checksum += serie->nb_chips;
 
         // Iteriere über die unterstützten Chips dieser Serie
@@ -208,10 +221,28 @@ uint32_t supported_chips_checksum(void) {
             series_checksum += chip->gpnvm;
             series_checksum += chip->rstccr;
         }
-		printf("Processor Family: %s; Supported Devices: %u; Checksum 0x%08x\n", serie->name, serie->nb_chips, series_checksum);
-		checksum += series_checksum;
+
+        // Iteriere über die PIO Register, wenn vorhanden
+        if (NULL != serie->pio_regs) {
+            for (size_t j = 0; j < serie->nb_pio_regs; j++) {
+                const struct _pio_regs* pio_regs = &serie->pio_regs[j];
+
+                // Addiere die numerischen Felder
+                series_checksum += pio_regs->peripheral_instance_id;
+                series_checksum += pio_regs->pio_pudr_reg;
+                series_checksum += pio_regs->pio_puer_reg;
+                series_checksum += pio_regs->pio_pusr_reg;
+                series_checksum += pio_regs->pio_ppddr_reg;
+                series_checksum += pio_regs->pio_ppder_reg;
+                series_checksum += pio_regs->pio_ppdsr_reg;
+                series_checksum += pio_regs->pio_pdsr_reg;
+            }
+        }
+
+        printf("Processor Family: %s; Supported Devices: %u; Checksum 0x%08x\n", serie->name, serie->nb_chips, series_checksum);
+        checksum += series_checksum;
     }
-    
+
     //printf("Checksum: 0x%08x\n", checksum);
 	return checksum;
 }

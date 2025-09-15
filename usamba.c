@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "eefc.h"
 #include "utils.h"
+#include "pio.h"
 
 //#define BUFFER_SIZE 8192
 #define BUFFER_SIZE 256
@@ -175,6 +176,12 @@ static void usage(char* prog)
 	printf("- Getting/Setting/Clearing GPNVM:\n");
 	printf("    %s <port> gpnvm (get|set|clear) <gpnvm_number>\n", prog);
 	printf("\n");
+	printf("- Reading MCU PIO Pin Data:\n");
+	printf("    %s <port> read-pio-pin-data <PIOx> <bit pattern pull-up> <bit pattern pull-down> <bit pattern floating>\n", prog);
+	printf("        Bit pattern floating and pull-(up|down) can be specified in decimal, hexadecimal or octal.\n");
+	printf("            Definition pull-(up|down): [x] = 1 == Enable resistor, [x] = 0 == Disable resistor.\n");
+	printf("            Definition floating: [x] = 1 == Make pin floating, [x] = 0 == Do nothing.\n");
+	printf("\n");
 	printf("- Restart MCU:\n");
 	printf("    %s <port> restart-mcu\n", prog);
 	printf("\n");
@@ -189,14 +196,14 @@ static void version(char* prog)
 {
     // Version information
     printf("uSAMBA (Micro SAM-BA)\n");
-    
+
     // Build information (date and time)
     printf("Build Date: " __DATE__ "\n");
     printf("Build Time: " __TIME__ "\n");
 #ifdef __VERSION__
     printf("Compiler Version: " __VERSION__ "\n");
 #endif
-	
+
 	printf("\nSupported Devices:\n");
 	printf("Complete Database Checksum: 0x%08x\n", supported_chips_checksum());
 }
@@ -210,7 +217,8 @@ enum {
 	CMD_GPNVM_SET = 6,
 	CMD_GPNVM_CLEAR = 7,
 	CMD_UNLOCK_ALL = 8,
-	CMD_RESTART_MCU = 9,
+	CMD_READ_PIO_PIN_DATA = 9,
+	CMD_RESTART_MCU = 10,
 };
 
 int main(int argc, char *argv[])
@@ -221,6 +229,10 @@ int main(int argc, char *argv[])
 	char* filename = NULL;
 	uint32_t addr = 0;
 	uint32_t size = 0;
+	char* pio_port = NULL;
+	uint32_t bit_pattern_pull_up = 0;
+	uint32_t bit_pattern_pull_down = 0;
+	uint32_t bit_pattern_floating = 0;
 	bool err = true;
 
 	// parse command line
@@ -276,6 +288,18 @@ int main(int argc, char *argv[])
 			command = CMD_UNLOCK_ALL;
 			err = false;
 		} else {
+			fprintf(stderr, "Error: invalid number of arguments\n");
+		}
+	} else if (!strcmp(cmd_text, "read-pio-pin-data")) {
+		if (argc == 7) {
+			command = CMD_READ_PIO_PIN_DATA;
+			pio_port = argv[3];
+			bit_pattern_pull_up = strtol(argv[4], NULL, 0);
+			bit_pattern_pull_down = strtol(argv[5], NULL, 0);
+			bit_pattern_floating  = strtol(argv[6], NULL, 0);
+			err = false;
+		}
+		else {
 			fprintf(stderr, "Error: invalid number of arguments\n");
 		}
 	} else if (!strcmp(cmd_text, "restart-mcu")) {
@@ -403,6 +427,15 @@ int main(int argc, char *argv[])
 		{
 			printf("Unlocking all pages\n");
 			if (eefc_unlock(fd, chip, &locks, 0, chip->flash_size * 1024)) {
+				err = false;
+			}
+			break;
+		}
+
+		case CMD_READ_PIO_PIN_DATA:
+		{
+			printf("Reading PIO Pin Data\n");
+			if (reading_pio_pin_data(fd, serie, pio_port, bit_pattern_pull_up, bit_pattern_pull_down, bit_pattern_floating)) {
 				err = false;
 			}
 			break;

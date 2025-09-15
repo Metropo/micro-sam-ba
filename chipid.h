@@ -18,6 +18,7 @@
 #include <stdint.h>
 
 #include "common_types.h"
+#include "pio.h"
 
 struct _chip {
 	const char* name;
@@ -31,12 +32,17 @@ struct _chip {
 };
 
 struct _chip_serie {
-	const char*         name;
-	uint32_t            cidr_reg;
-	uint32_t            exid_reg;
-	uint32_t			rstccr_reg;
-	uint32_t            nb_chips;
-	const struct _chip* chips;
+	const char*             name;
+	uint32_t                cidr_reg;
+	uint32_t                exid_reg;
+	uint32_t                rstccr_reg;
+	uint32_t                pmcpcer0_reg; // PMC Peripheral Clock Enable Register 0
+	uint32_t                pmcpcdr0_reg; // PMC Peripheral Clock Disable Register 0
+	uint32_t                pmcpcsr0_reg; // PMC Peripheral Clock Status Register 0
+	uint32_t                nb_chips;
+	const struct _chip*     chips;
+	uint32_t                nb_pio_regs;
+	const struct _pio_regs* pio_regs;
 };
 
 extern const struct _chip_serie* chipid_get_serie(const char* name);

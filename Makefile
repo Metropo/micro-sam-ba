@@ -1,7 +1,7 @@
 CFLAGS=-std=gnu99 -Wall
 
 BINARY=usamba
-SOURCES = usamba.c comm.c chipid.c eefc.c
+SOURCES = usamba.c comm.c chipid.c eefc.c pio.c
 OBJS = $(SOURCES:.c=.o)
 
 $(BINARY): $(OBJS)

@@ -36,7 +36,13 @@ Usage: ``./usamba <port> (read|write|verify|erase-all|gpnvm) [args]*``
 
 - Get/Set/Clear GPNVM:
     ``./usamba <port> gpnvm (get|set|clear) <gpnvm_number>``
-    
+
+- Reading MCU PIO Pin Data:
+    ``./usamba.exe <port> read-pio-pin-data <PIOx> <bit pattern pull-up> <bit pattern pull-down> <bit pattern floating>``\
+    ``    Bit pattern floating and pull-(up|down) can be specified in decimal, hexadecimal or octal.``\
+    ``        Definition pull-(up|down): [x] = 1 == Enable resistor, [x] = 0 == Disable resistor.``\
+    ``        Definition floating: [x] = 1 == Make pin floating, [x] = 0 == Do nothing.``
+
 - Restart MCU
     ``./usamba <port> restart-mcu``
 
