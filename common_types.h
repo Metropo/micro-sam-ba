@@ -1,7 +1,7 @@
 #pragma once
 
 #if defined(_MSC_VER)
-#define WINDOWS_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 #endif
 
