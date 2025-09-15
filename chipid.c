@@ -11,6 +11,7 @@
  * more details.
  */
 
+#include <stdio.h>
 #include <string.h>
 #include "chipid.h"
 #include "comm.h"

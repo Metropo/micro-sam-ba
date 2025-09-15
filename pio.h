@@ -38,6 +38,9 @@ struct _pio_regs {
     const uint32_t pio_pdsr_reg;	       // PIO Pin Data Status Register
 };
 
+// fix incompatible-pointer-types
+struct _chip_serie;
+
 bool reading_pio_pin_data(serial_port_handle_t fd, const struct _chip_serie* chip_serie, char* pio_port, uint32_t bit_pattern_pull_up, uint32_t bit_pattern_pull_down, uint32_t bit_pattern_floating);
 
 #endif /* PIO_H_ */
